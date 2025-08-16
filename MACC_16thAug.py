@@ -29,7 +29,7 @@ def load_data(uploaded_file=None):
             'Project Name': [f'Project {i+1}' for i in range(100)],
             'Project Type': np.random.choice(project_types, 100),
             'IRR (%)': irr_values,
-            'Timeline (yrs)': timeline_values,
+            'Timeline (years)': timeline_values,
             'Cost per tonne (₹)': cost_values,
             'Emissions Saved (tCO₂e)': emissions_saved
         })
@@ -56,7 +56,7 @@ def filter_projects(df, irr_range, types, timeline_range, cost_range, emissions_
     return df[
         (df['IRR (%)'].between(*irr_range)) &
         (df['Project Type'].isin(types)) &
-        (df['Timeline (yrs)'].between(*timeline_range)) &
+        (df['Timeline (years)'].between(*timeline_range)) &
         (df['Cost per tonne (₹)'].between(*cost_range)) &
         (df['Emissions Saved (tCO₂e)'].between(*emissions_range))
     ]
@@ -85,7 +85,7 @@ fig = px.bar(
     y='Cost per tonne (₹)',
     color='IRR (%)',
     color_continuous_scale=color_scale,
-    hover_data=['Project Name', 'Project Type', 'Timeline (yrs)'],
+    hover_data=['Project Name', 'Project Type', 'Timeline (years)'],
     labels={'Cost per tonne (₹)': 'Marginal Cost (₹/tCO₂e)', 'Emissions Saved (tCO₂e)': 'Emissions Reduced (tCO₂e)'},
     title="MACC Curve for Selected Projects"
 )
