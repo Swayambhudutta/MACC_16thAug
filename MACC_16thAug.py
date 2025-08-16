@@ -1,28 +1,18 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
-import re
 
 st.set_page_config(page_title="What-If Simulation on the basis of MACC", layout="wide")
 st.title("What-If Simulation on the basis of MACC")
 st.sidebar.header("🔍 Filter Projects")
 
-# Load and normalize data
-def normalize_columns(df):
-    df.columns = [re.sub(r'[^\\w\\s]', '', col).strip().lower().replace(" ", "_") for col in df.columns]
-    return df
-
+# Load data
 uploaded_file = st.sidebar.file_uploader("Upload your project list CSV", type=["csv"])
 if uploaded_file:
     projects = pd.read_csv(uploaded_file)
-    projects = normalize_columns(projects)
 else:
     st.warning("Please upload a project list CSV file to proceed.")
     st.stop()
-
-# Column names from your file
-# ['project_name', 'project_type', 'irr', 'timeline_years', 'cost_per_tonne', 'emissions_saved_tco₂e']
 
 # Define filter bounds
 irr_bounds = {'<10%': (0, 10), '10–15%': (10, 15), '15–20%': (15, 20), '>20%': (20, 100)}
@@ -30,9 +20,9 @@ timeline_bounds = {'<1 yr': (0, 1), '1–2 yrs': (1, 2), '2–3 yrs': (2, 3), '>
 cost_bounds = {'<0': (-1000, 0), '0–500': (0, 500), '500–1000': (500, 1000), '1000–1500': (1000, 1500), '>1500': (1500, 5000)}
 emissions_bounds = {'<1000': (0, 1000), '1000–1500': (1000, 1500), '1500–2000': (1500, 2000), '2000–2500': (2000, 2500), '>2500': (2500, 10000)}
 
-# Sidebar filters with Select All
+# Sidebar filters
 irr_filter = st.sidebar.selectbox("IRR Range", list(irr_bounds.keys()))
-type_options = sorted(projects['project_type'].dropna().unique())
+type_options = sorted(projects['projecttype'].dropna().unique())
 type_filter = st.sidebar.multiselect("Project Type", ['Select All'] + type_options, default=['Select All'])
 if 'Select All' in type_filter:
     type_filter = type_options
@@ -46,10 +36,10 @@ top_n = st.sidebar.selectbox("Show Top Projects", [10, 20, 30])
 def filter_projects(df, irr_range, types, timeline_range, cost_range, emissions_range):
     return df[
         (df['irr'].between(*irr_range)) &
-        (df['project_type'].isin(types)) &
-        (df['timeline_years'].between(*timeline_range)) &
-        (df['cost_per_tonne'].between(*cost_range)) &
-        (df['emissions_saved_tco₂e'].between(*emissions_range))
+        (df['projecttype'].isin(types)) &
+        (df['timelineyears'].between(*timeline_range)) &
+        (df['costpertonne'].between(*cost_range)) &
+        (df['emissionssavedtcoe'].between(*emissions_range))
     ]
 
 # Apply filters
@@ -64,21 +54,21 @@ filtered = filter_projects(
 
 # Limit to top N
 if len(filtered) > top_n:
-    filtered = filtered.sort_values(by='emissions_saved_tco₂e', ascending=False).head(top_n)
+    filtered = filtered.sort_values(by='emissionssavedtcoe', ascending=False).head(top_n)
     st.warning(f"More than {top_n} projects matched. Showing top {top_n} by emissions saved.")
 
 # MACC Chart
 st.subheader("📊 Marginal Abatement Cost Curve (MACC)")
 if not filtered.empty:
-    filtered = filtered.sort_values(by='cost_per_tonne')
+    filtered = filtered.sort_values(by='costpertonne')
     fig = px.bar(
         filtered,
-        x='project_name',
-        y='cost_per_tonne',
+        x='projectname',
+        y='costpertonne',
         color='irr',
         color_continuous_scale=['#2ca02c', '#ff7f0e', '#d62728'],
-        hover_data=['project_type', 'timeline_years', 'emissions_saved_tco₂e'],
-        labels={'cost_per_tonne': 'Marginal Cost (₹/tCO₂e)', 'project_name': 'Project'},
+        hover_data=['projecttype', 'timelineyears', 'emissionssavedtcoe'],
+        labels={'costpertonne': 'Marginal Cost (₹/tCO₂e)', 'projectname': 'Project'},
         title="MACC Curve for Selected Projects"
     )
     st.plotly_chart(fig, use_container_width=True)
