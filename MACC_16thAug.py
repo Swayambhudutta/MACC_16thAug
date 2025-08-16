@@ -21,6 +21,9 @@ else:
     st.warning("Please upload a project list CSV file to proceed.")
     st.stop()
 
+# Column names from your file
+# ['project_name', 'project_type', 'irr', 'timeline_years', 'cost_per_tonne', 'emissions_saved_tco₂e']
+
 # Define filter bounds
 irr_bounds = {'<10%': (0, 10), '10–15%': (10, 15), '15–20%': (15, 20), '>20%': (20, 100)}
 timeline_bounds = {'<1 yr': (0, 1), '1–2 yrs': (1, 2), '2–3 yrs': (2, 3), '>3 yrs': (3, 10)}
@@ -46,7 +49,7 @@ def filter_projects(df, irr_range, types, timeline_range, cost_range, emissions_
         (df['project_type'].isin(types)) &
         (df['timeline_years'].between(*timeline_range)) &
         (df['cost_per_tonne'].between(*cost_range)) &
-        (df['emissions_saved'].between(*emissions_range))
+        (df['emissions_saved_tco₂e'].between(*emissions_range))
     ]
 
 # Apply filters
@@ -61,7 +64,7 @@ filtered = filter_projects(
 
 # Limit to top N
 if len(filtered) > top_n:
-    filtered = filtered.sort_values(by='emissions_saved', ascending=False).head(top_n)
+    filtered = filtered.sort_values(by='emissions_saved_tco₂e', ascending=False).head(top_n)
     st.warning(f"More than {top_n} projects matched. Showing top {top_n} by emissions saved.")
 
 # MACC Chart
@@ -74,7 +77,7 @@ if not filtered.empty:
         y='cost_per_tonne',
         color='irr',
         color_continuous_scale=['#2ca02c', '#ff7f0e', '#d62728'],
-        hover_data=['project_type', 'timeline_years', 'emissions_saved'],
+        hover_data=['project_type', 'timeline_years', 'emissions_saved_tco₂e'],
         labels={'cost_per_tonne': 'Marginal Cost (₹/tCO₂e)', 'project_name': 'Project'},
         title="MACC Curve for Selected Projects"
     )
