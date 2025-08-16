@@ -22,7 +22,7 @@ emissions_bounds = {'<1000': (0, 1000), '1000–1500': (1000, 1500), '1500–200
 
 # Sidebar filters
 irr_filter = st.sidebar.selectbox("IRR Range", list(irr_bounds.keys()))
-type_options = sorted(projects['projecttype'].dropna().unique())
+type_options = sorted(projects['project_type'].dropna().unique())
 type_filter = st.sidebar.multiselect("Project Type", ['Select All'] + type_options, default=['Select All'])
 if 'Select All' in type_filter:
     type_filter = type_options
@@ -36,10 +36,10 @@ top_n = st.sidebar.selectbox("Show Top Projects", [10, 20, 30])
 def filter_projects(df, irr_range, types, timeline_range, cost_range, emissions_range):
     return df[
         (df['irr'].between(*irr_range)) &
-        (df['projecttype'].isin(types)) &
-        (df['timelineyears'].between(*timeline_range)) &
-        (df['costpertonne'].between(*cost_range)) &
-        (df['emissionssavedtcoe'].between(*emissions_range))
+        (df['project_type'].isin(types)) &
+        (df['timeline_years'].between(*timeline_range)) &
+        (df['cost_per_tonne'].between(*cost_range)) &
+        (df['emissions_saved_tcoe'].between(*emissions_range))
     ]
 
 # Apply filters
@@ -54,21 +54,21 @@ filtered = filter_projects(
 
 # Limit to top N
 if len(filtered) > top_n:
-    filtered = filtered.sort_values(by='emissionssavedtcoe', ascending=False).head(top_n)
+    filtered = filtered.sort_values(by='emissions_saved_tcoe', ascending=False).head(top_n)
     st.warning(f"More than {top_n} projects matched. Showing top {top_n} by emissions saved.")
 
 # MACC Chart
 st.subheader("📊 Marginal Abatement Cost Curve (MACC)")
 if not filtered.empty:
-    filtered = filtered.sort_values(by='costpertonne')
+    filtered = filtered.sort_values(by='cost_per_tonne')
     fig = px.bar(
         filtered,
         x='projectname',
-        y='costpertonne',
+        y='cost_per_tonne',
         color='irr',
         color_continuous_scale=['#2ca02c', '#ff7f0e', '#d62728'],
-        hover_data=['projecttype', 'timelineyears', 'emissionssavedtcoe'],
-        labels={'costpertonne': 'Marginal Cost (₹/tCO₂e)', 'projectname': 'Project'},
+        hover_data=['project_type', 'timeline_years', 'emissions_saved_tcoe'],
+        labels={'cost_per_tonne': 'Marginal Cost (₹/tCO₂e)', 'projectname': 'Project'},
         title="MACC Curve for Selected Projects"
     )
     st.plotly_chart(fig, use_container_width=True)
